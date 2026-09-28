@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ôn tập cụm từ tiếng Hán</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f0;--card:#fff;--ink:#14231f;--sub:#5b6b66;--jade:#1f7a5c;--jade-d:#155a44;--red:#c0392b;--line:#cfd9d5;--tile:#f6f9f8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a17;--card:#172622;--ink:#e8f0ed;--sub:#93a8a1;--jade:#3fbf95;--jade-d:#2e9c77;--red:#ff6b5b;--line:#2b403a;--tile:#1d302b}}
+:root[data-theme="dark"]{--bg:#0f1a17;--card:#172622;--ink:#e8f0ed;--sub:#93a8a1;--jade:#3fbf95;--jade-d:#2e9c77;--red:#ff6b5b;--line:#2b403a;--tile:#1d302b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;display:flex;justify-content:center;padding:16px}
+.app{width:100%;max-width:560px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:600}
+.hearts{font-size:24px;letter-spacing:4px}
+.heart.lost{opacity:.25;filter:grayscale(1)}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;width:100%;background:var(--jade);transform-origin:left;transition:background .3s}
+.bar i.low{background:var(--red)}
+.time{text-align:right;font-size:14px;color:var(--sub);margin-bottom:14px;font-variant-numeric:tabular-nums}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.q{font-size:20px;font-weight:600;margin:0 0 4px}
+.hint{color:var(--sub);font-size:14px;margin:0 0 16px}
+.ans{min-height:76px;display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:12px;margin-bottom:16px;align-content:flex-start}
+.ans.shake{animation:sh .35s}
+.ans.ok{border-color:var(--jade);border-style:solid}
+@keyframes sh{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.ph{color:var(--sub);font-size:14px;align-self:center;margin:0 auto}
+.t{font-family:"Noto Serif SC","Songti SC","SimSun",serif;font-weight:700;font-size:28px;width:52px;height:56px;display:grid;place-items:center;border:1px solid var(--line);background:var(--tile);color:var(--ink);border-radius:10px;cursor:pointer;padding:0}
+.t:hover:not(:disabled){border-color:var(--jade)}
+.t:focus-visible,.btn:focus-visible{outline:3px solid var(--jade);outline-offset:2px}
+.t:disabled{opacity:.2;cursor:default}
+.ans .t{background:var(--card);border-color:var(--jade)}
+.bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.row{display:flex;gap:10px;margin-top:16px}
+.btn{flex:1;font:inherit;font-weight:600;font-size:16px;padding:13px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.btn.main{background:var(--jade);border-color:var(--jade);color:#fff}
+.btn.main:hover{background:var(--jade-d)}
+.btn:disabled{opacity:.4;cursor:default}
+.msg{min-height:22px;margin-top:12px;font-weight:600;text-align:center}
+.msg.bad{color:var(--red)}.msg.good{color:var(--jade)}
+.ov{position:fixed;inset:0;background:rgba(10,20,17,.6);display:none;place-items:center;padding:20px}
+.ov.on{display:grid}
+.box{background:var(--card);border-radius:16px;padding:26px;max-width:380px;text-align:center}
+.box h2{margin:0 0 8px}.box p{color:var(--sub);margin:0 0 18px}
+.big{font-size:48px;margin-bottom:6px}
+@media (max-width:420px){.t{width:44px;height:50px;font-size:24px}}
+@media (prefers-reduced-motion:reduce){.ans.shake{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top"><span id="prog">Câu 1/5</span><span class="hearts" id="hearts" aria-label="Số tim còn lại"></span></div>
+  <div class="bar"><i id="fill"></i></div>
+  <div class="time" id="time">90 giây</div>
+  <div class="card">
+    <p class="q" id="q"></p>
+    <p class="hint">Chọn các chữ Hán theo đúng thứ tự để tạo thành cụm hoàn chỉnh.</p>
+    <div class="ans" id="ans" aria-live="polite"></div>
+    <div class="bank" id="bank"></div>
+    <div class="row">
+      <button class="btn" id="clear">Xóa hết</button>
+      <button class="btn main" id="check">Kiểm tra</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+<div class="ov" id="ov"><div class="box"><div class="big" id="obig"></div><h2 id="ot"></h2><p id="op"></p><button class="btn main" id="ob" style="width:100%"></button></div></div>
+<script>
+const CHARS="上网聊天儿看新闻查邮件发邮件四小时半一个十五分钟两的".split("");
+const QS=[
+ {en:"Go online for four hours.",a:"上四个小时的网"},
+ {en:"Chat for half an hour.",a:"聊半个小时的天儿"},
+ {en:"Read the news for two hours.",a:"看两个小时的新闻"},
+ {en:"Check email for 15 minutes.",a:"查十五分钟的邮件"},
+ {en:"Send two emails.",a:"发两个邮件"}
+];
+const LIMIT=90,MAXH=2;
+let qi=0,hearts=MAXH,left=LIMIT,timer=null,picked=[],tiles=[],locked=false;
+const $=id=>document.getElementById(id);
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function renderHearts(){$("hearts").innerHTML=Array.from({length:MAXH},(_,i)=>`<span class="heart ${i<hearts?"":"lost"}">❤️</span>`).join("")}
+function renderTiles(){
+  const bank=$("bank"),ans=$("ans");
+  bank.innerHTML="";ans.innerHTML="";
+  tiles.forEach(t=>{
+    const b=document.createElement("button");b.className="t";b.textContent=t.c;b.disabled=picked.includes(t.id);
+    b.setAttribute("aria-label","Chọn "+t.c);b.onclick=()=>{if(locked)return;picked.push(t.id);renderTiles()};
+    bank.appendChild(b);
+  });
+  if(!picked.length){ans.innerHTML='<span class="ph">Chạm vào chữ Hán bên dưới</span>'}
+  picked.forEach((id,i)=>{
+    const t=tiles.find(x=>x.id===id),b=document.createElement("button");
+    b.className="t";b.textContent=t.c;b.setAttribute("aria-label","Bỏ chữ "+t.c);
+    b.onclick=()=>{if(locked)return;picked.splice(i,1);renderTiles()};ans.appendChild(b);
+  });
+}
+function loadQ(){
+  locked=false;picked=[];
+  tiles=shuffle(CHARS.map((c,i)=>({c,id:i})));
+  $("prog").textContent=`Câu ${qi+1}/5`;
+  $("q").textContent=`${qi+1}. ${QS[qi].en}`;
+  $("msg").textContent="";$("msg").className="msg";
+  $("ans").classList.remove("ok");
+  renderHearts();renderTiles();startTimer();
+}
+function startTimer(){
+  clearInterval(timer);left=LIMIT;drawTime();
+  timer=setInterval(()=>{left--;drawTime();if(left<=0){clearInterval(timer);lose("Hết 90 giây rồi!")}},1000);
+}
+function drawTime(){
+  $("time").textContent=left+" giây";
+  const f=$("fill");f.style.transform=`scaleX(${left/LIMIT})`;f.classList.toggle("low",left<=10);
+}
+function lose(text){
+  locked=true;clearInterval(timer);hearts--;renderHearts();
+  const m=$("msg");m.textContent=text;m.className="msg bad";
+  const a=$("ans");a.classList.remove("shake");void a.offsetWidth;a.classList.add("shake");
+  if(hearts<=0){setTimeout(()=>overlay("💔","Hết tim rồi","Bạn cần làm lại từ câu 1.","Làm lại từ đầu",restart),700);return}
+  setTimeout(()=>{picked=[];locked=false;m.textContent="";m.className="msg";renderTiles();startTimer()},1200);
+}
+function check(){
+  if(locked||!picked.length)return;
+  const s=picked.map(id=>tiles.find(x=>x.id===id).c).join("");
+  if(s===QS[qi].a){
+    locked=true;clearInterval(timer);
+    $("ans").classList.add("ok");
+    const m=$("msg");m.textContent="Chính xác! "+QS[qi].a;m.className="msg good";
+    setTimeout(()=>{
+      if(qi===QS.length-1){overlay("🎉","Hoàn thành!","Bạn đã làm đúng cả 5 câu.","Ôn lại từ đầu",restart)}
+      else{qi++;hearts=MAXH;loadQ()}
+    },1200);
+  }else lose("Chưa đúng, thử lại nhé.");
+}
+function overlay(big,t,p,btn,fn){
+  $("obig").textContent=big;$("ot").textContent=t;$("op").textContent=p;$("ob").textContent=btn;
+  $("ob").onclick=()=>{$("ov").classList.remove("on");fn()};$("ov").classList.add("on");$("ob").focus();
+}
+function restart(){qi=0;hearts=MAXH;loadQ()}
+$("check").onclick=check;
+$("clear").onclick=()=>{if(locked)return;picked=[];renderTiles()};
+loadQ();
+</script>
+</body>
+</html>
